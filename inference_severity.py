@@ -87,5 +87,5 @@ if __name__ == '__main__':
         print('For each lung, the score is from 0 to 4, with 0 = no opacity and 4 = white-out.')
 
     print('**DISCLAIMER**')
-    print(
-        'Do not use this prediction for self-diagnosis. You should check with your local authorities for the latest advice on seeking medical assistance.')
+    print('Do not use this prediction for self-diagnosis. You should check with your local authorities for the latest '
+          'advice on seeking medical assistance.')

@@ -44,5 +44,5 @@ print('Prediction: {}'.format(inv_mapping[pred_pneumonia.argmax()]))
 print('Confidence')
 print('Normal: {:.3f}, Pneumonia: {:.3f}'.format(pred_pneumonia[0], pred_pneumonia[1]))
 print('**DISCLAIMER**')
-print(
-    'Do not use this prediction for self-diagnosis. You should check with your local authorities for the latest advice on seeking medical assistance.')
+print('Do not use this prediction for self-diagnosis. You should check with your local authorities for the latest '
+      'advice on seeking medical assistance.')

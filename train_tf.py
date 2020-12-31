@@ -20,6 +20,7 @@ parser.add_argument('--trainfile', default='train_COVIDx5.txt', type=str, help='
 parser.add_argument('--testfile', default='test_COVIDx5.txt', type=str, help='Name of test file')
 parser.add_argument('--name', default='COVIDNet', type=str, help='Name of folder to store training checkpoints')
 parser.add_argument('--datadir', default='data', type=str, help='Path to data folder')
+parser.add_argument('--outputdir', default='output', type=str, help='Path to data folder')
 parser.add_argument('--covid_weight', default=4., type=float, help='Class weighting for covid')
 parser.add_argument('--covid_percent', default=0.3, type=float, help='Percentage of covid samples in batch')
 parser.add_argument('--input_size', default=480, type=int, help='Size of input (ex: if 480x480, --input_size 480)')
@@ -42,7 +43,7 @@ batch_size = args.bs
 display_step = 1
 
 # output path
-outputPath = './output/'
+outputPath = args.outputdir
 runID = args.name + '-lr' + str(learning_rate)
 runPath = outputPath + runID
 pathlib.Path(runPath).mkdir(parents=True, exist_ok=True)

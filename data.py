@@ -92,18 +92,22 @@ class BalanceCovidDataset(keras.utils.Sequence):
             input_shape=(224, 224),
             n_classes=3,
             num_channels=3,
-            mapping={
-                'normal': 0,
-                'pneumonia': 1,
-                'COVID-19': 2
-            },
+            mapping=None,
             shuffle=True,
             augmentation=apply_augmentation,
             covid_percent=0.3,
-            class_weights=[1., 1., 6.],
+            class_weights=None,
             top_percent=0.08
     ):
         'Initialization'
+        if class_weights is None:
+            class_weights = [1., 1., 6.]
+        if mapping is None:
+            mapping = {
+                'normal': 0,
+                'pneumonia': 1,
+                'COVID-19': 2
+            }
         self.datadir = data_dir
         self.dataset = _process_csv_file(csv_file)
         self.is_training = is_training
