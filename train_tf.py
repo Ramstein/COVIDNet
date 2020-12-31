@@ -1,10 +1,13 @@
 from __future__ import print_function
 
-import tensorflow as tf
-import os, argparse, pathlib
+import argparse
+import os
+import pathlib
 
-from eval import eval
+import tensorflow as tf
+
 from data import BalanceCovidDataset
+from eval import eval
 
 parser = argparse.ArgumentParser(description='COVID-Net Training Script')
 parser.add_argument('--epochs', default=10, type=int, help='Number of epochs')
@@ -22,11 +25,14 @@ parser.add_argument('--covid_percent', default=0.3, type=float, help='Percentage
 parser.add_argument('--input_size', default=480, type=int, help='Size of input (ex: if 480x480, --input_size 480)')
 parser.add_argument('--top_percent', default=0.08, type=float, help='Percent top crop from top of image')
 parser.add_argument('--in_tensorname', default='input_1:0', type=str, help='Name of input tensor to graph')
-parser.add_argument('--out_tensorname', default='norm_dense_1/Softmax:0', type=str, help='Name of output tensor from graph')
-parser.add_argument('--logit_tensorname', default='norm_dense_1/MatMul:0', type=str, help='Name of logit tensor for loss')
-parser.add_argument('--label_tensorname', default='norm_dense_1_target:0', type=str, help='Name of label tensor for loss')
-parser.add_argument('--weights_tensorname', default='norm_dense_1_sample_weights:0', type=str, help='Name of sample weights tensor for loss')
-
+parser.add_argument('--out_tensorname', default='norm_dense_1/Softmax:0', type=str,
+                    help='Name of output tensor from graph')
+parser.add_argument('--logit_tensorname', default='norm_dense_1/MatMul:0', type=str,
+                    help='Name of logit tensor for loss')
+parser.add_argument('--label_tensorname', default='norm_dense_1_target:0', type=str,
+                    help='Name of label tensor for loss')
+parser.add_argument('--weights_tensorname', default='norm_dense_1_sample_weights:0', type=str,
+                    help='Name of sample weights tensor for loss')
 
 args = parser.parse_args()
 
@@ -69,7 +75,7 @@ with tf.Session() as sess:
 
     # Define loss and optimizer
     loss_op = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(
-        logits=pred_tensor, labels=labels_tensor)*sample_weights)
+        logits=pred_tensor, labels=labels_tensor) * sample_weights)
     optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
     train_op = optimizer.minimize(loss_op)
 
@@ -81,13 +87,13 @@ with tf.Session() as sess:
 
     # load weights
     saver.restore(sess, os.path.join(args.weightspath, args.ckptname))
-    #saver.restore(sess, tf.train.latest_checkpoint(args.weightspath))
+    # saver.restore(sess, tf.train.latest_checkpoint(args.weightspath))
 
     # save base model
     saver.save(sess, os.path.join(runPath, 'model'))
     print('Saved baseline checkpoint')
     print('Baseline eval:')
-    eval(sess, graph, testfiles, os.path.join(args.datadir,'test'),
+    eval(sess, graph, testfiles, os.path.join(args.datadir, 'test'),
          args.in_tensorname, args.out_tensorname, args.input_size)
 
     # Training cycle
@@ -101,18 +107,17 @@ with tf.Session() as sess:
             sess.run(train_op, feed_dict={image_tensor: batch_x,
                                           labels_tensor: batch_y,
                                           sample_weights: weights})
-            progbar.update(i+1)
+            progbar.update(i + 1)
 
         if epoch % display_step == 0:
-            pred = sess.run(pred_tensor, feed_dict={image_tensor:batch_x})
+            pred = sess.run(pred_tensor, feed_dict={image_tensor: batch_x})
             loss = sess.run(loss_op, feed_dict={pred_tensor: pred,
                                                 labels_tensor: batch_y,
                                                 sample_weights: weights})
             print("Epoch:", '%04d' % (epoch + 1), "Minibatch loss=", "{:.9f}".format(loss))
-            eval(sess, graph, testfiles, os.path.join(args.datadir,'test'),
+            eval(sess, graph, testfiles, os.path.join(args.datadir, 'test'),
                  args.in_tensorname, args.out_tensorname, args.input_size)
-            saver.save(sess, os.path.join(runPath, 'model'), global_step=epoch+1, write_meta_graph=False)
+            saver.save(sess, os.path.join(runPath, 'model'), global_step=epoch + 1, write_meta_graph=False)
             print('Saving checkpoint at epoch {}'.format(epoch + 1))
-
 
 print("Optimization Finished!")

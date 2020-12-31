@@ -15,18 +15,13 @@ TODO: Make this script more general so that it can be used to transfer learn for
 paul@darwinai.ca
 """
 import argparse
-from collections import namedtuple
-import cv2
 import os
 from typing import List, Tuple, Dict, Any
 
 import numpy as np
 import pandas as pd
-from sklearn.metrics import confusion_matrix
 import tensorflow as tf
-
-from data import BalanceDataGenerator
-
+from sklearn.metrics import confusion_matrix
 
 # We will create a checkpoint which has initial values for these variables
 VARS_TO_FORGET = [
@@ -50,10 +45,11 @@ def get_parse_fn(num_classes: int, augment: bool = False):
         image_decoded = tf.image.resize_images(
             tf.image.decode_jpeg(tf.io.read_file(imagepath), IMAGE_SHAPE[-1]), IMAGE_SHAPE[:2])
         return (
-            tf.image.convert_image_dtype(image_decoded, dtype=tf.float32) / 255.0, # x
-            tf.one_hot(label, num_classes), # y
-            tf.convert_to_tensor(1.0, dtype=tf.float32), # sample_weights TODO: verify this is right
+            tf.image.convert_image_dtype(image_decoded, dtype=tf.float32) / 255.0,  # x
+            tf.one_hot(label, num_classes),  # y
+            tf.convert_to_tensor(1.0, dtype=tf.float32),  # sample_weights TODO: verify this is right
         )
+
     return parse_function
 
 
@@ -63,7 +59,7 @@ def parse_split(split_txt_path: str) -> Tuple[List[str], List[int]]:
     # FIXME: we need to add pretrained weights + .txts for split with well-distributed offset.
     files, labels = [], [],
     for split_entry in open(split_txt_path).readlines():
-        _, image_file, diagnosis = split_entry.strip().split() # TODO: txts should just contain ids
+        _, image_file, diagnosis = split_entry.strip().split()  # TODO: txts should just contain ids
         if diagnosis == 'COVID-19':
             patient = csv[csv["filename"] == image_file]
             recorded_offset = patient['offset'].item()
@@ -102,7 +98,7 @@ def eval_net(sess: tf.Session, dataset_dict: Dict[str, Any], test_files: List[st
 
     matrix = confusion_matrix(all_labels, np.concatenate(preds)).astype('float')
     per_class_acc = [
-        matrix[i,i]/np.sum(matrix[i,:]) if np.sum(matrix[i,:]) else 0 for i in range(len(matrix))
+        matrix[i, i] / np.sum(matrix[i, :]) if np.sum(matrix[i, :]) else 0 for i in range(len(matrix))
     ]
     print("confusion matrix:\n{}\nper-class accuracies:\n{}".format(matrix, per_class_acc))
 
@@ -115,7 +111,7 @@ if __name__ == "__main__":
                         help='Number of classes to stratify offset into.')
     parser.add_argument('--stratification', type=int, nargs='+', default=[3, 5, 10],
                         help='Stratification points (days), i.e. "5 10" produces stratification of'
-                        ': 0o <-0c-> 5o <-1c-> 10o -2c-> via >= comparison (o=offset, c=class).')
+                             ': 0o <-0c-> 5o <-1c-> 10o -2c-> via >= comparison (o=offset, c=class).')
     parser.add_argument('--epochs', default=10, type=int,
                         help='Number of epochs (less since we\'re effectively fine-tuning).')
     parser.add_argument('--lr', default=0.000002, type=float, help='Learning rate.')
@@ -123,7 +119,7 @@ if __name__ == "__main__":
     parser.add_argument('--eval-batch-size', default=8, type=int, help='Eval batch-size')
     parser.add_argument('--evaliterval', default=3, type=int,
                         help='# of epochs to train before running evaluation. NOTE: we only save'
-                        'after evaluation. This can be disabled when more test data is available')
+                             'after evaluation. This can be disabled when more test data is available')
     parser.add_argument('--input-weights-dir', default='models/COVIDNetv2', type=str,
                         help='Path to input folder containing a trained COVID-Netv2 checkpoint')
     parser.add_argument('--input-meta-name', default='model.meta', type=str,
@@ -156,8 +152,8 @@ if __name__ == "__main__":
     stratify = lambda offset: np.where(offset >= stratification)[0][-1]
 
     # Read CSV of dataset
-    assert os.path.exists(args.chestxraydir), "please clone "\
-        "https://github.com/ieee8023/covid-chestxray-dataset and pass path to dir as --chestxraydir"
+    assert os.path.exists(args.chestxraydir), "please clone " \
+                                              "https://github.com/ieee8023/covid-chestxray-dataset and pass path to dir as --chestxraydir"
     csv = pd.read_csv(os.path.join(args.chestxraydir, "metadata.csv"), nrows=None)
 
     # Get the image filepaths and labels for training and testing split
@@ -270,7 +266,6 @@ if __name__ == "__main__":
             # Train
             print("Fine-Tuning on 1 epoch = {} images.".format(len(train_files)))
             for i in range(num_batches):
-
                 batch_x, batch_y, weights = sess.run(datasets['train']['gn_op'])
                 sess.run(
                     train_op,
@@ -284,7 +279,7 @@ if __name__ == "__main__":
 
             # Evaluate + save
             if epoch % args.evaliterval == 0:
-                pred = sess.run(pred_tensor, feed_dict={image_tensor:batch_x})
+                pred = sess.run(pred_tensor, feed_dict={image_tensor: batch_x})
                 loss = sess.run(
                     loss_op,
                     feed_dict={
@@ -292,7 +287,7 @@ if __name__ == "__main__":
                         labels_tensor: batch_y,
                         sample_weights: weights,
                     }
-               )
+                )
                 print("Epoch:", '%04d' % (epoch + 1), "Minibatch loss=", "{:.9f}".format(loss))
                 eval_net(sess, datasets['test'], test_files, test_labels)
                 saver.save(

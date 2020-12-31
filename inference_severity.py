@@ -1,14 +1,18 @@
+import argparse
+import os
+from collections import defaultdict
+
 import numpy as np
 import tensorflow as tf
-import os, argparse
 
 from data import process_image_file
-from collections import defaultdict
+
 
 def score_prediction(softmax, step_size):
     vals = np.arange(3) * step_size + (step_size / 2.)
     vals = np.expand_dims(vals, axis=0)
     return np.sum(softmax * vals, axis=-1)
+
 
 class MetaModel:
     def __init__(self, meta_file, ckpt_file):
@@ -43,13 +47,15 @@ class MetaModel:
 
         return outputs['score']
 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='COVID-Net Lung Severity Scoring')
     parser.add_argument('--weightspath_geo', default='models/COVIDNet-SEV-GEO', type=str, help='Path to output folder')
     parser.add_argument('--weightspath_opc', default='models/COVIDNet-SEV-OPC', type=str, help='Path to output folder')
     parser.add_argument('--metaname', default='model.meta', type=str, help='Name of ckpt meta file')
     parser.add_argument('--ckptname', default='model', type=str, help='Name of model ckpts')
-    parser.add_argument('--imagepath', default='assets/ex-covid.jpeg', type=str, help='Full path to image to perfom scoring on')
+    parser.add_argument('--imagepath', default='assets/ex-covid.jpeg', type=str,
+                        help='Full path to image to perfom scoring on')
     parser.add_argument('--input_size', default=480, type=int, help='Size of input (ex: if 480x480, --input_size 480)')
     parser.add_argument('--top_percent', default=0.08, type=float, help='Percent top crop from top of image')
 
@@ -68,7 +74,7 @@ if __name__ == '__main__':
         output_geo = model_geo.infer(x)
 
         print('Geographic severity: {:.3f}'.format(output_geo[0]))
-        print('Geographic extent score for right + left lung (0 - 8): {:.3f}'.format(output_geo[0]*8))
+        print('Geographic extent score for right + left lung (0 - 8): {:.3f}'.format(output_geo[0] * 8))
         print('For each lung: 0 = no involvement; 1 = <25%; 2 = 25-50%; 3 = 50-75%; 4 = >75% involvement.')
 
     if infer_opc:
@@ -77,8 +83,9 @@ if __name__ == '__main__':
         output_opc = model_opc.infer(x)
 
         print('Opacity severity: {:.3f}'.format(output_opc[0]))
-        print('Opacity extent score for right + left lung (0 - 8): {:.3f}'.format(output_opc[0]*8))
+        print('Opacity extent score for right + left lung (0 - 8): {:.3f}'.format(output_opc[0] * 8))
         print('For each lung, the score is from 0 to 4, with 0 = no opacity and 4 = white-out.')
 
     print('**DISCLAIMER**')
-    print('Do not use this prediction for self-diagnosis. You should check with your local authorities for the latest advice on seeking medical assistance.')
+    print(
+        'Do not use this prediction for self-diagnosis. You should check with your local authorities for the latest advice on seeking medical assistance.')
